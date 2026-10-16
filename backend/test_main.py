@@ -8,10 +8,8 @@ from main import app, allTweets
 @pytest.fixture
 def client():
     """Клиент FastAPI. Сбрасывает состояние перед каждым тестом."""
-    # Сохраняем исходное состояние
     original = list(allTweets)
     yield TestClient(app)
-    # Восстанавливаем после теста
     allTweets.clear()
     allTweets.extend(original)
 
@@ -24,7 +22,7 @@ def test_get_all_tweets_returns_list(client):
     assert isinstance(data, list)
     assert len(data) == 3
 
-    # Проверяем структуру первого элемента
+
     first = data[0]
     assert "id" in first
     assert "title" in first
