@@ -3,6 +3,8 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+git
+git.pub
 jsconfig.json
 .vscode
 # C extensions
