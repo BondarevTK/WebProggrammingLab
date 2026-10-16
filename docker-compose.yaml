@@ -14,3 +14,12 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+  tests:
+    build: ./backend # тот же Dockerfile, что и у backend
+    container_name: notes-tests
+    command: pytest -v # переопределяем CMD из Dockerfile
+    depends_on:
+      - backend
+    profiles:
+      - test
