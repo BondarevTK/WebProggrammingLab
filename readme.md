@@ -17,7 +17,7 @@
 - **FastAPI** — REST API
 - **Pydantic** — валидация входных и выходных данных
 - **Uvicorn** — ASGI-сервер
-- **HTML + CSS + JavaScript (fetch)** — фронтенд
+- **HTML + CSS + JavaScript** — фронтенд
 - **pytest + httpx** — тесты
 
 ## Структура проекта
