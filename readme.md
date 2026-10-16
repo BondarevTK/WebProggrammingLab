@@ -129,12 +129,6 @@ FastAPI возвращает ошибки в формате `{"detail": "..."}`,
 ### 1. Установка зависимостей
 
 ```bash
-pip install fastapi uvicorn[standard] pytest httpx
-```
-
-Или через `requirements.txt`:
-
-```bash
 pip install -r requirements.txt
 ```
 
@@ -149,9 +143,9 @@ uvicorn main:app --reload
 
 ### 3. Запуск фронтенда
 
-Откройте `index.html` в браузере. Если используете CORS — фронтенд
-обращается к `http://localhost:8000/tweet`. Если отдаёте статику через
-Nginx — используйте относительный путь `/api/tweet`.
+```bash
+nginx -g daemon off
+```
 
 ## Пользовательский сценарий
 
@@ -172,9 +166,7 @@ Nginx — используйте относительный путь `/api/tweet
 
 ## Скриншот
 
-![Скриншот страницы](screenshot.png)
-
-_(замените `screenshot.png` на свой файл)_
+![Скриншот страницы](ScreenshotLab1.png)
 
 ## Тесты
 
