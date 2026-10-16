@@ -60,6 +60,7 @@ const form = document.getElementById("tweetCreateForm");
 const titleInput = document.getElementById("createTitle");
 const descriptionInput = document.getElementById("createDescription");
 const errorBox = document.getElementById("error");
+let editingId = null;
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
