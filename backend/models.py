@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 class tweet(BaseModel):
     id: int
@@ -6,6 +6,8 @@ class tweet(BaseModel):
     description: str
     likes: int | None = 0
     imageUrl: str | None="/images/default.jpg"
+
+    model_config = ConfigDict(from_attributes=True)
 
 class tweetCreate(BaseModel):
     title: str
