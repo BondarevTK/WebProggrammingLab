@@ -2,91 +2,96 @@
    Reset + base
    ============================================================ */
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 body {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  background: #f5f5f7;
-  color: #222;
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 24px 16px 64px;
-  line-height: 1.5;
+    font-family:
+        system-ui,
+        -apple-system,
+        "Segoe UI",
+        Roboto,
+        sans-serif;
+    background: #f5f5f7;
+    color: #222;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 24px 16px 64px;
+    line-height: 1.5;
 }
 
 h1 {
-  margin: 0 0 20px;
-  font-size: 1.6rem;
+    margin: 0 0 20px;
+    font-size: 1.6rem;
 }
 
 /* ============================================================
    Error box
    ============================================================ */
 #error {
-  color: #b00020;
-  background: #ffe6e9;
-  border: 1px solid #b00020;
-  border-radius: 6px;
-  padding: 8px 12px;
-  margin-bottom: 16px;
-  display: none;
+    color: #b00020;
+    background: #ffe6e9;
+    border: 1px solid #b00020;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 16px;
+    display: none;
 }
 
 #error:not(:empty) {
-  display: block;
+    display: block;
 }
 
 /* ============================================================
    Form
    ============================================================ */
 form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 28px;
-  padding: 16px;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 28px;
+    padding: 16px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
 }
 
 input,
 textarea {
-  font: inherit;
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: #fff;
-  width: 100%;
+    font: inherit;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    width: 100%;
 }
 
 input:focus,
 textarea:focus {
-  outline: none;
-  border-color: #0066ff;
-  box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.15);
+    outline: none;
+    border-color: #0066ff;
+    box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.15);
 }
 
 textarea {
-  min-height: 90px;
-  resize: vertical;
+    min-height: 90px;
+    resize: vertical;
 }
 
 /* ============================================================
    List of tweets
    ============================================================ */
 #tweets {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 #tweets > p {
-  color: #666;
-  font-style: italic;
-  margin: 0;
-  padding: 12px 0;
+    color: #666;
+    font-style: italic;
+    margin: 0;
+    padding: 12px 0;
 }
 
 /* ============================================================
@@ -94,253 +99,372 @@ textarea {
    ============================================================ */
 .tweet,
 .note {
-  display: flex;               /* картинка и текст в одну строку */
-  align-items: flex-start;     /* выравнивание по верхнему краю */
-  gap: 14px;                   /* отступ между картинкой и текстом */
+    display: flex; /* картинка и текст в одну строку */
+    align-items: flex-start; /* выравнивание по верхнему краю */
+    gap: 14px; /* отступ между картинкой и текстом */
 
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 14px 16px;
-  cursor: pointer;
-  transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition:
+        box-shadow 0.15s,
+        transform 0.15s,
+        border-color 0.15s;
 }
 
 .tweet:hover,
 .note:hover {
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-  transform: translateY(-1px);
-  border-color: #cfcfcf;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+    border-color: #cfcfcf;
 }
 
 .tweet.active,
 .note.active {
-  border-color: #0066ff;
-  box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.15);
+    border-color: #0066ff;
+    box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.15);
 }
 
 /* --- Картинка поста --- */
 .tweet-image,
 .note-image {
-  flex: 0 0 auto;              /* не сжимается и не растягивается */
-  width: 72px;
-  height: 72px;
-  object-fit: cover;           /* обрезает по квадрату, без искажений */
-  border-radius: 10px;
-  background: #eee;            /* серый фон, пока картинка грузится */
-  display: block;
+    flex: 0 0 auto; /* не сжимается и не растягивается */
+    width: 72px;
+    height: 72px;
+    object-fit: cover; /* обрезает по квадрату, без искажений */
+    border-radius: 10px;
+    background: #eee; /* серый фон, пока картинка грузится */
+    display: block;
 }
 
 /* --- Текстовая часть карточки --- */
 .tweet-body,
 .note-body {
-  flex: 1 1 auto;              /* занимает всё оставшееся место */
-  min-width: 0;                /* важно, чтобы длинный текст не ломал flex */
+    flex: 1 1 auto; /* занимает всё оставшееся место */
+    min-width: 0; /* важно, чтобы длинный текст не ломал flex */
 }
 
 .tweet-body h3,
 .note h3 {
-  margin: 0 0 4px;
-  font-size: 1.05rem;
-  color: #111;
-  line-height: 1.3;
+    margin: 0 0 4px;
+    font-size: 1.05rem;
+    color: #111;
+    line-height: 1.3;
 }
 
 .tweet-body p,
 .note p {
-  margin: 0;
-  color: #555;
-  font-size: 0.92rem;
+    margin: 0;
+    color: #555;
+    font-size: 0.92rem;
 
-  /* обрезка до 2 строк */
-  display: -webkit-box;
-  line-clamp: 2;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+    /* обрезка до 2 строк */
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 /* ============================================================
    Details panel
    ============================================================ */
 #details {
-  margin-top: 24px;
-  padding: 18px 20px;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  display: none;
+    margin-top: 24px;
+    padding: 18px 20px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    display: none;
 }
 
 #details:not(:empty) {
-  display: block;
+    display: block;
 }
 
 #details h2 {
-  margin: 0 0 10px;
-  font-size: 1.25rem;
-  color: #111;
+    margin: 0 0 10px;
+    font-size: 1.25rem;
+    color: #111;
 }
 
 #details p {
-  margin: 0 0 18px;
-  color: #333;
-  white-space: pre-wrap;       /* сохраняет переносы строк в тексте */
-  line-height: 1.6;
+    margin: 0 0 18px;
+    color: #333;
+    white-space: pre-wrap; /* сохраняет переносы строк в тексте */
+    line-height: 1.6;
 }
 
 /* Картинка в подробном просмотре */
 #details img {
-  display: block;
-  max-width: 100%;
-  max-height: 360px;
-  border-radius: 10px;
-  margin: 0 0 16px;
-  object-fit: cover;
+    display: block;
+    max-width: 100%;
+    max-height: 360px;
+    border-radius: 10px;
+    margin: 0 0 16px;
+    object-fit: cover;
 }
 
 /* ============================================================
    Buttons
    ============================================================ */
 button {
-  font: inherit;
-  padding: 8px 14px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: #fff;
-  color: #222;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+    font: inherit;
+    padding: 8px 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    color: #222;
+    cursor: pointer;
+    transition:
+        background 0.15s,
+        border-color 0.15s,
+        color 0.15s;
 }
 
 button:hover {
-  background: #f0f0f0;
+    background: #f0f0f0;
 }
 
 button:active {
-  transform: translateY(1px);
+    transform: translateY(1px);
 }
 
 /* Primary — «Опубликовать», «Сохранить» */
 button.primary {
-  background: #0066ff;
-  color: #fff;
-  border-color: #0066ff;
+    background: #0066ff;
+    color: #fff;
+    border-color: #0066ff;
 }
 
 button.primary:hover {
-  background: #0052cc;
-  border-color: #0052cc;
+    background: #0052cc;
+    border-color: #0052cc;
 }
 
 /* Danger — «Удалить» */
 button.danger {
-  color: #b00020;
-  border-color: #b00020;
-  background: #fff;
+    color: #b00020;
+    border-color: #b00020;
+    background: #fff;
 }
 
 button.danger:hover {
-  background: #ffe6e9;
+    background: #ffe6e9;
 }
 
 /* ============================================================
    Button rows
    ============================================================ */
 .actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 4px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
 }
 
 /* ============================================================
    Navbar
    ============================================================ */
 .navbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: #fff;
-  border-bottom: 1px solid #e0e0e0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .navbar-inner {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 0 16px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 16px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .brand {
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: #111;
-  text-decoration: none;
-  letter-spacing: -0.01em;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #111;
+    text-decoration: none;
+    letter-spacing: -0.01em;
 }
 
 .brand:hover {
-  color: #0066ff;
+    color: #0066ff;
 }
 
 .nav-links {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  gap: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 4px;
 }
 
 .nav-links a {
-  display: block;
-  padding: 8px 12px;
-  border-radius: 6px;
-  text-decoration: none;
-  color: #444;
-  font-size: 0.95rem;
-  transition: background 0.15s, color 0.15s;
+    display: block;
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #444;
+    font-size: 0.95rem;
+    transition:
+        background 0.15s,
+        color 0.15s;
 }
 
 .nav-links a:hover {
-  background: #f0f0f0;
-  color: #111;
+    background: #f0f0f0;
+    color: #111;
 }
 
 .nav-links a.active {
-  color: #0066ff;
-  background: rgba(0, 102, 255, 0.08);
+    color: #0066ff;
+    background: rgba(0, 102, 255, 0.08);
 }
 
 main {
-  padding-top: 24px;
+    padding-top: 24px;
 }
 
 /* ============================================================
    Responsive
    ============================================================ */
 @media (max-width: 480px) {
-  body {
-    padding: 16px 12px 48px;
-  }
+    body {
+        padding: 16px 12px 48px;
+    }
 
-  h1 {
-    font-size: 1.35rem;
-  }
+    h1 {
+        font-size: 1.35rem;
+    }
 
-  .tweet,
-  .note {
-    padding: 12px;
+    .tweet,
+    .note {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .tweet-image,
+    .note-image {
+        width: 56px;
+        height: 56px;
+    }
+}
+
+/* ============================================================
+   Comments Section
+   ============================================================ */
+.comments-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0; /* Отделяем комментарии от поста */
+}
+
+.comments-section h3 {
+    margin: 0 0 14px;
+    font-size: 1.1rem;
+    color: #111;
+    font-weight: 600;
+}
+
+.comment-item {
+    background: #f9f9fb; /* Легкий серый фон, чтобы выделить комментарий */
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: border-color 0.15s;
+}
+
+.comment-item:hover {
+    border-color: #cfcfcf;
+}
+
+.comment-item p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #333;
+    white-space: pre-wrap;
+    word-break: break-word; /* Чтобы длинные слова переносились */
+}
+
+.comment-likes {
+    font-size: 0.85rem;
+    color: #888;
+    font-weight: 500;
+}
+
+.no-comments {
+    color: #777;
+    font-style: italic;
+    font-size: 0.95rem;
+    margin: 0;
+    padding: 10px 0;
+}
+
+.add-comment-form {
+    display: flex;
     gap: 10px;
-  }
+    margin-top: 16px;
+    padding: 0; /* Перебиваем padding от основной формы */
+    border: none;
+    background: transparent;
+    flex-direction: row;
+}
 
-  .tweet-image,
-  .note-image {
-    width: 56px;
-    height: 56px;
-  }
+.add-comment-form input {
+    flex: 1;
+}
+
+.add-comment-form button {
+    background: #0066ff;
+    color: white;
+    border-color: #0066ff;
+    white-space: nowrap;
+}
+
+.add-comment-form button:hover {
+    background: #0052cc;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+}
+
+.comment-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0; /* Запрещаем сжимать кнопки */
+}
+.delete-comment-btn {
+    background: none;
+    border: none;
+    color: #b00020;
+    cursor: pointer;
+    padding: 2px 6px;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    transition:
+        background 0.15s,
+        color 0.15s;
+}
+
+.delete-comment-btn:hover {
+    background: #ffe6e9;
+    color: #d00020;
 }

@@ -3,6 +3,7 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+ruff.toml
 git
 git.pub
 jsconfig.json
