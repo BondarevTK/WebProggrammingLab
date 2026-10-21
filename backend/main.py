@@ -98,13 +98,15 @@ async def changeTweet(tweetId: int, payload: tweetCreate, db=Depends(get_db)):
         tweet.model_validate(
             db.execute(selectOneQuery.bindparams(id=tweetId)).mappings().first()
         )
-        res = db.execute(
+        db.execute(
             changeOneQuery.bindparams(
                 id=tweetId, title=payload.title, description=payload.description
             )
         )
         db.commit()
-        return res
+        return tweet.model_validate(
+            db.execute(selectOneQuery.bindparams(id=tweetId)).mappings().first()
+        )
     except ValidationError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="something went wrong"
@@ -127,7 +129,7 @@ async def createComment(tweetId: int, payload: commentCreate, db=Depends(get_db)
     db.commit()
 
 
-@app.delete("/tweet/{tweetId}/comments/{commentId}")
+@app.delete("/comments/{commentId}", status_code=status.HTTP_200_OK)
 async def deleteComment(commentId: int, db=Depends(get_db)):
     try:
         db.execute(deleteOneCommentQuery.bindparams(id=commentId))

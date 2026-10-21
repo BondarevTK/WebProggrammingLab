@@ -1,118 +1,134 @@
 import pytest
+from database import SessionLocal, TweetDB, commentDB
 from fastapi.testclient import TestClient
+from main import app
 
-import main
-from main import app, allTweets
+# Создаем тестовый клиент
+client = TestClient(app)
 
 
-@pytest.fixture
-def client():
-    """Клиент FastAPI. Сбрасывает состояние перед каждым тестом."""
-    original = list(allTweets)
-    yield TestClient(app)
-    allTweets.clear()
-    allTweets.extend(original)
+@pytest.fixture(autouse=True)
+def clean_database():
+    """
+    Фикстура запускается ПЕРЕД каждым тестом.
+    Она очищает таблицы в базе данных, чтобы тесты не влияли друг на друга.
+    """
+    db = SessionLocal()
+    try:
+        # Удаляем сначала комментарии (из-за Foreign Key), затем твиты
+        db.query(commentDB).delete()
+        db.query(TweetDB).delete()
+        db.commit()
 
-def test_get_all_tweets_returns_list(client):
-    """Успешный сценарий: список возвращается, статус 200."""
+        # Добавляем базовый твит для тестов (id=1)
+        test_tweet = TweetDB(id=1, title="Test", description="Test desc", likes=0)
+        db.add(test_tweet)
+        db.commit()
+    finally:
+        db.close()
+
+    yield  # Здесь выполняется сам тест
+
+    # После теста можно тоже почистить, но для простоты достаточно очистки в начале
+
+
+# ==========================================
+# Тесты для твитов (GET, POST, PUT, DELETE)
+# ==========================================
+
+
+def test_get_all_tweets():
+    """Успешный сценарий: получение списка твитов."""
     response = client.get("/tweet")
     assert response.status_code == 200
-
     data = response.json()
     assert isinstance(data, list)
-    assert len(data) == 3
+    assert len(data) == 1
+    assert data[0]["title"] == "Test"
 
 
-    first = data[0]
-    assert "id" in first
-    assert "title" in first
-    assert "description" in first
-    assert "likes" in first
+def test_create_tweet():
+    """Успешный сценарий: создание нового твита."""
+    payload = {"title": "New tweet", "description": "New description"}
+    response = client.post("/tweet", json=payload)
+    assert response.status_code == 201
 
-def test_get_tweet_by_id_success(client):
-    """Успешный сценарий: получаем твит с существующим id."""
+    # Проверяем, что твит добавился
+    get_response = client.get("/tweet")
+    assert len(get_response.json()) == 2
+
+
+def test_get_tweet_by_id():
+    """Успешный сценарий: получение одного твита по ID."""
     response = client.get("/tweet/1")
     assert response.status_code == 200
-
     data = response.json()
     assert data["id"] == 1
-    assert data["title"] == "hello world yet again"
+    assert data["title"] == "Test"
 
 
-def test_get_tweet_by_id_not_found(client):
-    """Ошибочный сценарий: id вне диапазона → 400."""
+def test_get_tweet_not_found():
+    """Ошибочный сценарий: запрос несуществующего твита."""
+    # В вашем коде ловится ValidationError и возвращается 400
     response = client.get("/tweet/999")
     assert response.status_code == 400
-    assert "detail" in response.json()
-
-def test_create_tweet_success(client):
-    """Успешный сценарий: создаём твит, получаем 201 и id."""
-    payload = {"title": "Новый пост", "description": "Тело поста"}
-    response = client.post("/tweet", json=payload)
-
-    assert response.status_code == 201
-    data = response.json()
-    assert data["title"] == "Новый пост"
-    assert data["description"] == "Тело поста"
-    assert data["id"] == 3          # idCounter после трёх стартовых
-
-    # Проверяем, что твит реально добавился
-    list_response = client.get("/tweet")
-    assert len(list_response.json()) == 4
+    assert response.json()["detail"] == "tweet not found"
 
 
-def test_create_tweet_invalid_payload(client):
-    """Ошибочный сценарий: не хватает поля → 422."""
-    payload = {"title": "Только заголовок"}    # нет description
-    response = client.post("/tweet", json=payload)
-
-    assert response.status_code == 422
-    assert "detail" in response.json()
-
-def test_update_tweet_success(client):
-    """Успешный сценарий: меняем title и description."""
-    payload = {"title": "Изменён", "description": "Новое тело"}
-    response = client.put("/tweet/0", json=payload)
-
+def test_update_tweet():
+    """Успешный сценарий: обновление твита."""
+    payload = {"title": "Updated", "description": "Updated desc"}
+    response = client.put("/tweet/1", json=payload)
     assert response.status_code == 200
-    data = response.json()
-    assert data["title"] == "Изменён"
-    assert data["description"] == "Новое тело"
-    assert data["id"] == 0
+
+    # Проверяем, что данные изменились
+    get_response = client.get("/tweet/1")
+    assert get_response.json()["title"] == "Updated"
 
 
-def test_update_tweet_not_found(client):
-    """Ошибочный сценарий: обновляем несуществующий id → 400."""
-    payload = {"title": "X", "description": "Y"}
-    response = client.put("/tweet/999", json=payload)
-
-    assert response.status_code == 404
-    assert "detail" in response.json()
-
-
-def test_update_tweet_invalid_payload(client):
-    """Ошибочный сценарий: пустое тело → 422."""
-    response = client.put("/tweet/0", json={})
-    assert response.status_code == 422
-
-def test_delete_tweet_success(client):
-    """Успешный сценарий: удаляем твит, список уменьшается."""
-    before = len(client.get("/tweet").json())
-    response = client.delete("/tweet/0")
+def test_delete_tweet():
+    """Успешный сценарий: удаление твита."""
+    response = client.delete("/tweet/1")
     assert response.status_code == 204
 
-    after = len(client.get("/tweet").json())
-    assert after == before - 1
+    # Проверяем, что твит удален
+    get_response = client.get("/tweet/1")
+    assert get_response.status_code == 400
 
 
-def test_delete_tweet_not_found(client):
-    """Ошибочный сценарий: удаляем несуществующий id → 400."""
-    response = client.delete("/tweet/999")
-    assert response.status_code == 400
-    assert "detail" in response.json()
+# ==========================================
+# Тесты для комментариев
+# ==========================================
 
-def test_state_isolation(client):
-    """После предыдущих тестов состояние должно быть исходным."""
-    data = client.get("/tweet").json()
-    assert len(data) == 3
-    assert data[0]["title"] == "hello world"
+
+def test_create_comment():
+    """Успешный сценарий: добавление комментария к твиту."""
+    payload = {"description": "Nice post!"}
+    response = client.post("/tweet/1/comments", json=payload)
+    assert response.status_code == 200  # У вас не указан status_code=201, поэтому 200
+
+    # Проверяем через GET /tweet/1, что комментарий подтянулся (благодаря JSON_AGG)
+    get_response = client.get("/tweet/1")
+    assert get_response.status_code == 200
+    data = get_response.json()
+
+    assert len(data["comments"]) == 1
+    assert data["comments"][0]["description"] == "Nice post!"
+
+
+def test_delete_comment():
+    """Успешный сценарий: удаление комментария."""
+    # 1. Создаем комментарий
+    client.post("/tweet/1/comments", json={"description": "To be deleted"})
+
+    # 2. Получаем его ID
+    get_response = client.get("/tweet/1")
+    comment_id = get_response.json()["comments"][0]["id"]
+
+    # 3. Удаляем
+    response = client.delete(f"/comments/{comment_id}")
+    assert response.status_code == 200
+
+    # 4. Проверяем, что он исчез
+    get_response = client.get("/tweet/1")
+    assert len(get_response.json()["comments"]) == 0

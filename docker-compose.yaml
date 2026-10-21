@@ -39,6 +39,8 @@ services:
   tests:
     build: ./backend # тот же Dockerfile, что и у backend
     container_name: notes-tests
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://postgres:postgres@db:5432/postgres
     command: pytest -v # переопределяем CMD из Dockerfile
     depends_on:
       - backend

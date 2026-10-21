@@ -309,7 +309,7 @@ async function deleteComment(commentId, tweetId) {
     // Если в бэкенде FastAPI параметр объявлен просто как commentId: int,
     // то FastAPI автоматически ищет его в Query Parameters (после вопросительного знака).
     const response = await fetch(
-      `http://localhost:8000/tweet/${tweetId}/comments/${commentId}`,
+      `http://localhost:8000/comments/${commentId}`,
       {
         method: "DELETE",
       },
