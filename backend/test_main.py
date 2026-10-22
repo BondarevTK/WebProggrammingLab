@@ -71,7 +71,7 @@ def test_get_tweet_not_found():
     """Ошибочный сценарий: запрос несуществующего твита."""
     # В вашем коде ловится ValidationError и возвращается 400
     response = client.get("/tweet/999")
-    assert response.status_code == 400
+    assert response.status_code == 404
     assert response.json()["detail"] == "tweet not found"
 
 
@@ -93,7 +93,7 @@ def test_delete_tweet():
 
     # Проверяем, что твит удален
     get_response = client.get("/tweet/1")
-    assert get_response.status_code == 400
+    assert get_response.status_code == 404
 
 
 # ==========================================
@@ -105,7 +105,7 @@ def test_create_comment():
     """Успешный сценарий: добавление комментария к твиту."""
     payload = {"description": "Nice post!"}
     response = client.post("/tweet/1/comments", json=payload)
-    assert response.status_code == 200  # У вас не указан status_code=201, поэтому 200
+    assert response.status_code == 201  # У вас не указан status_code=201, поэтому 200
 
     # Проверяем через GET /tweet/1, что комментарий подтянулся (благодаря JSON_AGG)
     get_response = client.get("/tweet/1")

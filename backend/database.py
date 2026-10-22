@@ -29,6 +29,14 @@ class commentDB(Base):
     created = Column(DateTime, default=datetime.now())
 
 
+class UserDB(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    passhash = Column(String, nullable=False)
+
+
 Base.metadata.create_all(bind=engine)
 
 
@@ -37,12 +45,14 @@ selectAllQuery = text(
 )
 # needs {"tweetId":tweetId}
 selectOneQuery = text("select id, title, description, likes from tweets where id=:id")
-addOneQuery = text("insert into tweets(title,description) values(:title,:description)")
+addOneQuery = text(
+    "insert into tweets(title,description,likes) values(:title,:description,0) RETURNING id, title, description, likes"
+)
 addOneCommentQuery = text(
-    "insert into comments(post,description) values(:post,:description)"
+    "insert into comments(post,description,likes) values(:post,:description,0) RETURNING id, description, likes"
 )
 changeOneQuery = text(
-    "update tweets set title=:title,description=:description where id=:id"
+    "update tweets set title=:title,description=:description where id=:id RETURNING id, title, description, likes"
 )
 deleteOneQuery = text("delete from tweets where id=:id")
 deleteOneCommentQuery = text("delete from comments where id=:id")

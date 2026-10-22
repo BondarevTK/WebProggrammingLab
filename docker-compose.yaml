@@ -20,6 +20,7 @@ services:
     container_name: notes-backend
     environment:
       - DATABASE_URL=postgresql+psycopg2://postgres:postgres@db:5432/postgres
+      - JWT_KEY=16406ef703464a7c1cf0872fb529e23dff080667c1a84f358e56291da7b03068
     ports:
       - "8000:8000"
     depends_on:

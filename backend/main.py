@@ -1,9 +1,13 @@
 # Мини-социальная сеть
 # Пользователь, Публикации, Комментарии
+from typing import Annotated
+
+from auth import *
 from database import *
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from models import commentCreate, tweet, tweetCreate
+from fastapi.security import OAuth2PasswordRequestForm
+from models import Token, User, UserCreate, comment, commentCreate, tweet, tweetCreate
 from pydantic import ValidationError
 
 app = FastAPI()
@@ -59,6 +63,113 @@ def seed_database():
         db.close()
 
 
+@app.post("/user", response_model=User)
+async def createUser(payload: UserCreate, db=Depends(get_db)):
+    res = (
+        db.execute(
+            text(
+                "select username,email from users where username=:username"
+            ).bindparams(username=payload.username)
+        )
+        .mappings()
+        .first()
+    )
+    if res:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="username already exists"
+        )
+    res = (
+        db.execute(
+            text("select * from users where email=:email").bindparams(
+                email=payload.email.lower()
+            )
+        )
+        .mappings()
+        .first()
+    )
+    if res:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="email is already registered",
+        )
+    new_user = User.model_validate(
+        db.execute(
+            text(
+                "insert into users(username,email,passhash) values(:username,:email,:passhash) returning id,username,email,passhash"
+            ).bindparams(
+                username=payload.username,
+                email=payload.email.lower(),
+                passhash=hash_password(payload.passwordUnhashed),
+            )
+        )
+        .mappings()
+        .first()
+    )
+    db.commit()
+    return new_user
+
+
+@app.post("/token", response_model=Token)
+async def loginToken(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db=Depends(get_db)
+):
+    result = User.model_validate(
+        db.execute(
+            text("select * from users where email = :email").bindparams(
+                email=form_data.username.lower()
+            )
+        )
+        .mappings()
+        .first()
+    )
+    if not result or not verify_password(form_data.password, result.passhash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="incorrect password or email",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    accToken = create_access_token(data={"sub": str(result.id)})
+    return Token(access_token=accToken, token_type="bearer")
+
+
+@app.get("/me", response_model=User)
+async def get_current_user(token=Depends(oauth2_scheme), db=Depends(get_db)):
+    """Get the currently authenticated user."""
+    user_id = verify_access_token(token)
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Validate user_id is a valid integer (defense against malformed JWT)
+    try:
+        user_id_int = int(user_id)
+    except (TypeError, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    result = (
+        db.execute(
+            text("select * from users where id = :id").bindparams(id=user_id_int)
+        )
+        .mappings()
+        .first()
+    )
+    user = User.model_validate(result)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user
+
+
 @app.get("/tweet", response_model=list[tweet])
 async def GetAllTweets(db=Depends(get_db)):
     res = db.execute(selectAllQuery)
@@ -77,7 +188,7 @@ async def deleteTweet(tweetId: int, db=Depends(get_db)):
         )
 
 
-@app.get("/tweet/{tweetId}")
+@app.get("/tweet/{tweetId}", response_model=tweet)
 async def GetTweetById(tweetId: int, db=Depends(get_db)):
     try:
         res = tweet.model_validate(
@@ -88,45 +199,71 @@ async def GetTweetById(tweetId: int, db=Depends(get_db)):
         return res
     except ValidationError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="tweet not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="tweet not found"
         )
 
 
-@app.put("/tweet/{tweetId}")
+@app.put("/tweet/{tweetId}", response_model=tweet)
 async def changeTweet(tweetId: int, payload: tweetCreate, db=Depends(get_db)):
     try:
         tweet.model_validate(
             db.execute(selectOneQuery.bindparams(id=tweetId)).mappings().first()
         )
-        db.execute(
-            changeOneQuery.bindparams(
-                id=tweetId, title=payload.title, description=payload.description
+        res = (
+            db.execute(
+                changeOneQuery.bindparams(
+                    id=tweetId, title=payload.title, description=payload.description
+                )
             )
+            .mappings()
+            .first()
         )
         db.commit()
-        return tweet.model_validate(
-            db.execute(selectOneQuery.bindparams(id=tweetId)).mappings().first()
-        )
+        return res
     except ValidationError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="something went wrong"
+            status_code=status.HTTP_404_NOT_FOUND, detail="tweet not found"
         )
 
 
-@app.post("/tweet", status_code=status.HTTP_201_CREATED)
+@app.post("/tweet", status_code=status.HTTP_201_CREATED, response_model=tweet)
 async def CreateTweet(payload: tweetCreate, db=Depends(get_db)):
-    db.execute(
-        addOneQuery.bindparams(title=payload.title, description=payload.description)
+    res = tweet.model_validate(
+        db.execute(
+            addOneQuery.bindparams(title=payload.title, description=payload.description)
+        )
+        .mappings()
+        .first()
     )
     db.commit()
+    return res
 
 
-@app.post("/tweet/{tweetId}/comments")
+@app.post(
+    "/tweet/{tweetId}/comments",
+    response_model=comment,
+    status_code=status.HTTP_201_CREATED,
+)
 async def createComment(tweetId: int, payload: commentCreate, db=Depends(get_db)):
-    db.execute(
-        addOneCommentQuery.bindparams(description=payload.description, post=tweetId)
+    thisTweet = tweet.model_validate(
+        db.execute(selectOneQuery.bindparams(id=tweetId)).mappings().first()
     )
-    db.commit()
+    if not thisTweet:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="tweet not found"
+        )
+    else:
+        res = comment.model_validate(
+            db.execute(
+                addOneCommentQuery.bindparams(
+                    description=payload.description, post=tweetId
+                )
+            )
+            .mappings()
+            .first()
+        )
+        db.commit()
+        return res
 
 
 @app.delete("/comments/{commentId}", status_code=status.HTTP_200_OK)
@@ -136,5 +273,5 @@ async def deleteComment(commentId: int, db=Depends(get_db)):
         db.commit()
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="tweet not found"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="something went wrong"
         )

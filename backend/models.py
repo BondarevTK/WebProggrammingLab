@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
+from pydantic.fields import Field
 
 
 class comment(BaseModel):
@@ -23,3 +24,21 @@ class tweetCreate(BaseModel):
 
 class commentCreate(BaseModel):
     description: str
+
+
+class User(BaseModel):
+    id: int
+    username: str
+    email: EmailStr
+    passhash: str
+
+
+class UserCreate(BaseModel):
+    username: str
+    email: EmailStr
+    passwordUnhashed: str = Field(min_length=4)
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
