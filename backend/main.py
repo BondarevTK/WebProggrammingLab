@@ -8,7 +8,16 @@ from database import *
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
-from models import Token, User, UserCreate, comment, commentCreate, tweet, tweetCreate
+from models import (
+    Token,
+    User,
+    UserCreate,
+    comment,
+    commentCreate,
+    tweet,
+    tweetCreate,
+    tweetWithUsername,
+)
 from pydantic import ValidationError
 
 app = FastAPI()
@@ -102,17 +111,17 @@ async def getMe(current_user: currentUser):
 
 
 # tweet endpoints
-@app.get("/tweet", response_model=list[tweet])
+@app.get("/tweet", response_model=list[tweetWithUsername])
 async def GetAllTweets(db=Depends(get_db)):
     res = db.execute(selectAllQuery)
-    allTweets = map(tweet.model_validate, res.mappings().all())
+    allTweets = map(tweetWithUsername.model_validate, res.mappings().all())
     return allTweets
 
 
 @app.delete("/tweet/{tweetId}", status_code=status.HTTP_200_OK)
 async def deleteTweet(tweetId: int, current_user: currentUser, db=Depends(get_db)):
     try:
-        res = tweet.model_validate(
+        res = tweetWithUsername.model_validate(
             db.execute(selectOneQuery.bindparams(id=tweetId)).mappings().first()
         )
     except ValidationError:
@@ -131,10 +140,10 @@ async def deleteTweet(tweetId: int, current_user: currentUser, db=Depends(get_db
     return res
 
 
-@app.get("/tweet/{tweetId}", response_model=tweet)
+@app.get("/tweet/{tweetId}", response_model=tweetWithUsername)
 async def GetTweetById(tweetId: int, db=Depends(get_db)):
     try:
-        res = tweet.model_validate(
+        res = tweetWithUsername.model_validate(
             db.execute(selectOneWithCommentsQuery.bindparams(id=tweetId))
             .mappings()
             .first()
@@ -151,7 +160,7 @@ async def changeTweet(
     tweetId: int, payload: tweetCreate, current_user: currentUser, db=Depends(get_db)
 ):
     try:
-        res = tweet.model_validate(
+        res = tweetWithUsername.model_validate(
             db.execute(selectOneQuery.bindparams(id=tweetId)).mappings().first()
         )
     except ValidationError:
@@ -213,7 +222,7 @@ async def createComment(
     db=Depends(get_db),
 ):
     try:
-        tweet.model_validate(
+        tweetWithUsername.model_validate(
             db.execute(selectOneQuery.bindparams(id=tweetId)).mappings().first()
         )
     except ValidationError:

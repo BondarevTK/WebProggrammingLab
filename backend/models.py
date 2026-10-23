@@ -5,20 +5,26 @@ from pydantic.fields import Field
 class comment(BaseModel):
     id: int
     owner_id: int
-    owner_username: str
     description: str
     likes: int | None = 0
+
+
+class commentWithUsername(comment):
+    owner_username: str
 
 
 class tweet(BaseModel):
     id: int
     owner_id: int
-    username: str
     title: str
     description: str
-    comments: list[comment] | None = []
+    comments: list[commentWithUsername] | None = []
     likes: int | None = 0
     imageUrl: str | None = "/images/default.jpg"
+
+
+class tweetWithUsername(tweet):
+    username: str
 
 
 class tweetCreate(BaseModel):

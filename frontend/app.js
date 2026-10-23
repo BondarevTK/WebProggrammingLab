@@ -1,5 +1,5 @@
 let currentUser = null;
-const API_URL = "http://localhost:8000";
+const API_URL = "/api";
 window.onload = fetchTweets();
 window.onload = checkAuth();
 window.onload = setupAuthForms();
@@ -142,7 +142,7 @@ function setupAuthForms() {
 
 async function fetchTweets() {
   try {
-    const response = await fetch("http://localhost:8000/tweet");
+    const response = await fetch("/api/tweet");
     if (!response.ok) {
       throw new Error(`Server error: ${response.status}`);
     }
@@ -223,7 +223,7 @@ form.addEventListener("submit", async (event) => {
     let response;
     if (editingId === null) {
       // Создание
-      response = await fetch("http://localhost:8000/tweet", {
+      response = await fetch("/api/tweet", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -233,7 +233,7 @@ form.addEventListener("submit", async (event) => {
       });
     } else {
       // Обновление
-      response = await fetch(`http://localhost:8000/tweet/${editingId}`, {
+      response = await fetch(`/api/tweet/${editingId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -266,7 +266,7 @@ form.addEventListener("submit", async (event) => {
 
 async function showDetails(note) {
   try {
-    const response = await fetch(`http://localhost:8000/tweet/${note.id}`);
+    const response = await fetch(`/api/tweet/${note.id}`);
     if (!response.ok) {
       throw new Error(`Server error: ${response.status}`);
     }
@@ -394,25 +394,20 @@ async function showDetails(note) {
       if (!text) return;
 
       try {
-        const response = await fetch(
-          `http://localhost:8000/tweet/${note.id}/comments`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...getAuthHeaders(),
-            },
-            body: JSON.stringify({ description: text }), // Отправляем только текст
+        const response = await fetch(`/api/tweet/${note.id}/comments`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...getAuthHeaders(),
           },
-        );
+          body: JSON.stringify({ description: text }), // Отправляем только текст
+        });
 
         if (!response.ok) throw new Error("Ошибка при отправке");
 
         // Перезапрашиваем данные твита, чтобы увидеть новый комментарий
         // (или можно вручную добавить DOM-элемент, но перезапрос надежнее)
-        const updatedNote = await (
-          await fetch(`http://localhost:8000/tweet/${note.id}`)
-        ).json();
+        const updatedNote = await (await fetch(`/api/tweet/${note.id}`)).json();
         showDetails(updatedNote);
       } catch (err) {
         alert("Не удалось добавить комментарий: " + err.message);
@@ -429,7 +424,7 @@ async function deleteNote(id) {
   if (!confirm("Удалить эту заметку?")) return;
 
   try {
-    const response = await fetch(`http://localhost:8000/tweet/${id}`, {
+    const response = await fetch(`/api/tweet/${id}`, {
       method: "DELETE",
       headers: { ...getAuthHeaders() },
     });
@@ -449,7 +444,7 @@ async function deleteNote(id) {
 
 async function editNote(id) {
   try {
-    const response = await fetch(`http://localhost:8000/tweet/${id}`);
+    const response = await fetch(`/api/tweet/${id}`);
     if (!response.ok) {
       throw new Error(`Server error: ${response.status}`);
     }
@@ -478,22 +473,17 @@ async function deleteComment(commentId, tweetId) {
     // В вашем скриншоте эндпоинт выглядит как /tweet/comments (без ID в URL)
     // Если в бэкенде FastAPI параметр объявлен просто как commentId: int,
     // то FastAPI автоматически ищет его в Query Parameters (после вопросительного знака).
-    const response = await fetch(
-      `http://localhost:8000/comments/${commentId}`,
-      {
-        method: "DELETE",
-        headers: { ...getAuthHeaders() },
-      },
-    );
+    const response = await fetch(`/api/comments/${commentId}`, {
+      method: "DELETE",
+      headers: { ...getAuthHeaders() },
+    });
 
     if (!response.ok) {
       throw new Error(`Ошибка удаления: ${response.status}`);
     }
 
     // Перезапрашиваем твит, чтобы обновить список комментариев на экране
-    const updatedNote = await (
-      await fetch(`http://localhost:8000/tweet/${tweetId}`)
-    ).json();
+    const updatedNote = await (await fetch(`/api/tweet/${tweetId}`)).json();
     showDetails(updatedNote);
   } catch (err) {
     alert(err.message);
