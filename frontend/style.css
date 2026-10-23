@@ -14,7 +14,7 @@ body {
         sans-serif;
     background: #f5f5f7;
     color: #222;
-    max-width: 760px;
+    max-width: 1100px; /* Ширина страницы для двух колонок */
     margin: 0 auto;
     padding: 24px 16px 64px;
     line-height: 1.5;
@@ -43,7 +43,7 @@ h1 {
 }
 
 /* ============================================================
-   Form
+   Form (Форма создания твита)
    ============================================================ */
 form {
     display: flex;
@@ -95,14 +95,13 @@ textarea {
 }
 
 /* ============================================================
-   Tweet card — flex-контейнер: картинка + контент
+   Tweet card
    ============================================================ */
 .tweet,
 .note {
-    display: flex; /* картинка и текст в одну строку */
-    align-items: flex-start; /* выравнивание по верхнему краю */
-    gap: 14px; /* отступ между картинкой и текстом */
-
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
     background: #fff;
     border: 1px solid #e0e0e0;
     border-radius: 12px;
@@ -127,23 +126,21 @@ textarea {
     box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.15);
 }
 
-/* --- Картинка поста --- */
 .tweet-image,
 .note-image {
-    flex: 0 0 auto; /* не сжимается и не растягивается */
+    flex: 0 0 auto;
     width: 72px;
     height: 72px;
-    object-fit: cover; /* обрезает по квадрату, без искажений */
+    object-fit: cover;
     border-radius: 10px;
-    background: #eee; /* серый фон, пока картинка грузится */
+    background: #eee;
     display: block;
 }
 
-/* --- Текстовая часть карточки --- */
 .tweet-body,
 .note-body {
-    flex: 1 1 auto; /* занимает всё оставшееся место */
-    min-width: 0; /* важно, чтобы длинный текст не ломал flex */
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .tweet-body h3,
@@ -159,8 +156,6 @@ textarea {
     margin: 0;
     color: #555;
     font-size: 0.92rem;
-
-    /* обрезка до 2 строк */
     display: -webkit-box;
     line-clamp: 2;
     -webkit-line-clamp: 2;
@@ -193,11 +188,10 @@ textarea {
 #details p {
     margin: 0 0 18px;
     color: #333;
-    white-space: pre-wrap; /* сохраняет переносы строк в тексте */
+    white-space: pre-wrap;
     line-height: 1.6;
 }
 
-/* Картинка в подробном просмотре */
 #details img {
     display: block;
     max-width: 100%;
@@ -232,7 +226,6 @@ button:active {
     transform: translateY(1px);
 }
 
-/* Primary — «Опубликовать», «Сохранить» */
 button.primary {
     background: #0066ff;
     color: #fff;
@@ -244,7 +237,6 @@ button.primary:hover {
     border-color: #0052cc;
 }
 
-/* Danger — «Удалить» */
 button.danger {
     color: #b00020;
     border-color: #b00020;
@@ -255,9 +247,6 @@ button.danger:hover {
     background: #ffe6e9;
 }
 
-/* ============================================================
-   Button rows
-   ============================================================ */
 .actions {
     display: flex;
     gap: 8px;
@@ -278,7 +267,7 @@ button.danger:hover {
 }
 
 .navbar-inner {
-    max-width: 760px;
+    max-width: 1100px; /* Синхронизировано с body */
     margin: 0 auto;
     padding: 0 16px;
     height: 56px;
@@ -329,33 +318,81 @@ button.danger:hover {
     background: rgba(0, 102, 255, 0.08);
 }
 
-main {
-    padding-top: 24px;
+/* ============================================================
+   Layout (Две колонки)
+   ============================================================ */
+.layout-container {
+    display: flex;
+    justify-content: center; /* Центрирует группу колонок */
+    align-items: flex-start;
+    gap: 32px;
+    margin-top: 24px;
+}
+
+.content-column {
+    flex: 1;
+    max-width: 760px; /* Не дает твитам растягиваться слишком сильно */
+    min-width: 0;
+}
+
+.sidebar-column {
+    width: 360px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 80px;
 }
 
 /* ============================================================
-   Responsive
+   Auth Section
    ============================================================ */
-@media (max-width: 480px) {
-    body {
-        padding: 16px 12px 48px;
-    }
+.auth-form {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 24px;
+}
 
-    h1 {
-        font-size: 1.35rem;
-    }
+.auth-form h2 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 1.4rem;
+    text-align: center;
+}
 
-    .tweet,
-    .note {
-        padding: 12px;
-        gap: 10px;
-    }
+.auth-form input {
+    margin-bottom: 12px;
+}
 
-    .tweet-image,
-    .note-image {
-        width: 56px;
-        height: 56px;
-    }
+.auth-form button {
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.auth-form p {
+    text-align: center;
+    margin: 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.auth-form a {
+    color: #0066ff;
+    text-decoration: none;
+}
+
+.auth-form a:hover {
+    text-decoration: underline;
+}
+
+#auth-status button {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+}
+
+#auth-status span {
+    margin-right: 12px;
+    font-weight: 500;
 }
 
 /* ============================================================
@@ -364,7 +401,7 @@ main {
 .comments-section {
     margin-top: 24px;
     padding-top: 20px;
-    border-top: 1px solid #e0e0e0; /* Отделяем комментарии от поста */
+    border-top: 1px solid #e0e0e0;
 }
 
 .comments-section h3 {
@@ -375,7 +412,7 @@ main {
 }
 
 .comment-item {
-    background: #f9f9fb; /* Легкий серый фон, чтобы выделить комментарий */
+    background: #f9f9fb;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     padding: 12px 16px;
@@ -395,7 +432,7 @@ main {
     font-size: 0.95rem;
     color: #333;
     white-space: pre-wrap;
-    word-break: break-word; /* Чтобы длинные слова переносились */
+    word-break: break-word;
 }
 
 .comment-likes {
@@ -416,7 +453,7 @@ main {
     display: flex;
     gap: 10px;
     margin-top: 16px;
-    padding: 0; /* Перебиваем padding от основной формы */
+    padding: 0;
     border: none;
     background: transparent;
     flex-direction: row;
@@ -449,8 +486,9 @@ main {
     display: flex;
     align-items: center;
     gap: 10px;
-    flex-shrink: 0; /* Запрещаем сжимать кнопки */
+    flex-shrink: 0;
 }
+
 .delete-comment-btn {
     background: none;
     border: none;
@@ -467,4 +505,47 @@ main {
 .delete-comment-btn:hover {
     background: #ffe6e9;
     color: #d00020;
+}
+
+/* ============================================================
+   Responsive (Адаптивность)
+   ============================================================ */
+@media (max-width: 900px) {
+    .layout-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .sidebar-column {
+        width: 100%;
+        max-width: 400px;
+        position: static;
+        order: -1; /* На мобильных форма входа поднимается наверх */
+    }
+
+    .content-column {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 16px 12px 48px;
+    }
+
+    h1 {
+        font-size: 1.35rem;
+    }
+
+    .tweet,
+    .note {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .tweet-image,
+    .note-image {
+        width: 56px;
+        height: 56px;
+    }
 }

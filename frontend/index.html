@@ -1,32 +1,122 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <title>Notes</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <nav class="navbar">
-        <div class="navbar-inner">
-            <a href="/" class="brand">Notes</a>
+    <head>
+        <meta charset="utf-8" />
+        <title>Notes</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <!-- НАВИГАЦИОННАЯ ПАНЕЛЬ -->
+        <nav class="navbar">
+            <div class="navbar-inner">
+                <a href="/" class="brand">Notes</a>
 
-            <ul class="nav-links">
-                <li><a href="/" class="active">Главная</a></li>
-                <li><a href="/about">О проекте</a></li>
-                <li><a href="https://github.com/BondarevTK">Контакты</a></li>
-            
-        </div>
-    </nav>
-    <main>
-        <div id="error" style="color:red"></div>
-        <form id="tweetCreateForm">
-            <input id="createTitle" type="text" placeholder="title of your new tweet" required></inmput>
-            <textarea id="createDescription" type="text" placeholder="description of your new tweet" required></textarea>
-            <button type="submit" class="primary">create your tweet</button>
-        </form>
-        <div id="tweets"></div>
-        <div id="details"></div>
-    </main>
-  <script src="app.js" defer></script>
-</body>
+                <!-- Сюда JS вставляет кнопку "Выйти" или никнейм -->
+                <div id="auth-status"></div>
+
+                <!-- Ссылки навигации -->
+                <ul class="nav-links">
+                    <li><a href="/" class="active">Главная</a></li>
+                    <li><a href="/about">О проекте</a></li>
+                    <li>
+                        <a href="https://github.com/BondarevTK">Контакты</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- ОСНОВНОЙ КОНТЕНТ (Две колонки) -->
+        <main class="layout-container">
+            <!-- ЛЕВАЯ КОЛОНКА: Форма создания и список твитов -->
+            <div class="content-column">
+                <div id="error" style="color: red"></div>
+
+                <form id="tweetCreateForm">
+                    <input
+                        id="createTitle"
+                        type="text"
+                        placeholder="title of your new tweet"
+                        required
+                    />
+                    <textarea
+                        id="createDescription"
+                        type="text"
+                        placeholder="description of your new tweet"
+                        required
+                    ></textarea>
+                    <button type="submit" class="primary">
+                        create your tweet
+                    </button>
+                </form>
+
+                <div id="tweets"></div>
+                <div id="details"></div>
+            </div>
+
+            <!-- ПРАВАЯ КОЛОНКА: Форма авторизации -->
+            <div class="sidebar-column">
+                <div id="auth-section">
+                    <!-- Форма ВХОДА -->
+                    <div id="login-form-container" class="auth-form">
+                        <h2>Вход</h2>
+                        <input
+                            type="email"
+                            id="login-email"
+                            placeholder="Email"
+                            required
+                        />
+                        <input
+                            type="password"
+                            id="login-password"
+                            placeholder="Пароль"
+                            required
+                        />
+                        <button id="btn-login" class="primary">Войти</button>
+                        <p>
+                            Нет аккаунта?
+                            <a href="#" id="link-to-register"
+                                >Зарегистрироваться</a
+                            >
+                        </p>
+                    </div>
+
+                    <!-- Форма РЕГИСТРАЦИИ (скрыта по умолчанию) -->
+                    <div
+                        id="register-form-container"
+                        class="auth-form"
+                        style="display: none"
+                    >
+                        <h2>Регистрация</h2>
+                        <input
+                            type="text"
+                            id="reg-username"
+                            placeholder="Имя пользователя"
+                            required
+                        />
+                        <input
+                            type="email"
+                            id="reg-email"
+                            placeholder="Email"
+                            required
+                        />
+                        <input
+                            type="password"
+                            id="reg-password"
+                            placeholder="Пароль"
+                            required
+                        />
+                        <button id="btn-register" class="primary">
+                            Создать аккаунт
+                        </button>
+                        <p>
+                            Уже есть аккаунт?
+                            <a href="#" id="link-to-login">Войти</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <script src="app.js" defer></script>
+    </body>
 </html>

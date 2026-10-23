@@ -4,12 +4,16 @@ from pydantic.fields import Field
 
 class comment(BaseModel):
     id: int
+    owner_id: int
+    owner_username: str
     description: str
     likes: int | None = 0
 
 
 class tweet(BaseModel):
     id: int
+    owner_id: int
+    username: str
     title: str
     description: str
     comments: list[comment] | None = []
@@ -28,13 +32,13 @@ class commentCreate(BaseModel):
 
 class User(BaseModel):
     id: int
-    username: str
+    username: str = Field(min_length=4)
     email: EmailStr
     passhash: str
 
 
 class UserCreate(BaseModel):
-    username: str
+    username: str = Field(min_length=4)
     email: EmailStr
     passwordUnhashed: str = Field(min_length=4)
 

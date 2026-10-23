@@ -14,6 +14,9 @@ Base = declarative_base()
 class TweetDB(Base):
     __tablename__ = "tweets"
     id = Column(Integer, primary_key=True)
+    owner_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     title = Column(String, index=True)
     description = Column(String)
     likes = Column(Integer, default=0)
@@ -23,6 +26,9 @@ class TweetDB(Base):
 class commentDB(Base):
     __tablename__ = "comments"
     id = Column(Integer, primary_key=True)
+    owner_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     post = Column(Integer, ForeignKey("tweets.id", ondelete="CASCADE"), nullable=False)
     description = Column(String)
     likes = Column(Integer, default=0)
@@ -39,32 +45,47 @@ class UserDB(Base):
 
 Base.metadata.create_all(bind=engine)
 
-
+# Tweet queries
 selectAllQuery = text(
-    "select id, title, description, likes from tweets ORDER BY id DESC"
+    "SELECT t.id, t.title, t.description, t.likes, t.owner_id, u.username from tweets t left join users u on t.owner_id = u.id ORDER BY id DESC"
 )
-# needs {"tweetId":tweetId}
-selectOneQuery = text("select id, title, description, likes from tweets where id=:id")
+selectOneQuery = text(
+    "SELECT t.id, t.title, t.description, t.likes, t.owner_id, u.username from tweets t left join users u on t.owner_id = u.id where t.id=:id"
+)
 addOneQuery = text(
-    "insert into tweets(title,description,likes) values(:title,:description,0) RETURNING id, title, description, likes"
-)
-addOneCommentQuery = text(
-    "insert into comments(post,description,likes) values(:post,:description,0) RETURNING id, description, likes"
+    "INSERT into tweets(title,description,likes, owner_id) values(:title,:description,0,:owner_id) RETURNING id, owner_id,title, description, likes"
 )
 changeOneQuery = text(
-    "update tweets set title=:title,description=:description where id=:id RETURNING id, title, description, likes"
+    "UPDATE tweets set title=:title,description=:description where id=:id RETURNING id, title, description, likes, owner_id"
 )
-deleteOneQuery = text("delete from tweets where id=:id")
-deleteOneCommentQuery = text("delete from comments where id=:id")
+deleteOneQuery = text(
+    "DELETE from tweets where id=:id RETURNING id, title, description, likes, owner_id"
+)
 
 
-selectOneWithCommentsQuery = text("""SELECT t.id, t.title, t.description, t.likes,
-                COALESCE(json_agg(json_build_object('id', c.id, 'description', c.description, 'likes', c.likes)) FILTER (WHERE c.id IS NOT NULL), '[]')
+# Comment queries
+deleteOneCommentQuery = text(
+    "DELETE from comments where id=:id returning id,owner_id,description,likes"
+)
+addOneCommentQuery = text(
+    "INSERT into comments(post,description,likes, owner_id) values(:post,:description,0,:owner_id) RETURNING id, description, likes, owner_id"
+)
+changeOneCommentQuery = text(
+    "UPDATE comments set description=:description where id=:id RETURNING id, description, likes, owner_id"
+)
+selectOneCommentQuery = text(
+    "SELECT id, owner_id, description, likes from comments where id=:id"
+)
+
+selectOneWithCommentsQuery = text("""SELECT t.id, t.title, t.description, t.likes, t.owner_id, u.username,
+                COALESCE(json_agg(json_build_object('id', c.id, 'description', c.description, 'likes', c.likes, 'owner_id', c.owner_id,'owner_username', cu.username)) FILTER (WHERE c.id IS NOT NULL), '[]')
                 AS comments
                 FROM tweets t
+                LEFT JOIN users u ON t.owner_id = u.id
                 LEFT JOIN comments c ON t.id = c.post
+                LEFT JOIN users cu ON c.owner_id = cu.id
                 WHERE t.id = :id
-                GROUP BY t.id
+                GROUP BY t.id, u.username
                 """)
 
 

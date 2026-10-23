@@ -1,4 +1,144 @@
-window.onload = fetchTweets;
+let currentUser = null;
+const API_URL = "http://localhost:8000";
+window.onload = fetchTweets();
+window.onload = checkAuth();
+window.onload = setupAuthForms();
+
+function getAuthHeaders() {
+  const token = localStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+async function checkAuth() {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    updateAuthUI();
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/me`, { headers: getAuthHeaders() });
+    if (res.ok) {
+      currentUser = await res.json();
+    } else {
+      localStorage.removeItem("token"); // Токен протух
+      currentUser = null;
+    }
+  } catch (e) {
+    console.error("Auth check failed", e);
+  }
+  updateAuthUI();
+}
+function updateAuthUI() {
+  const statusDiv = document.getElementById("auth-status");
+  const sidebarColumn = document.querySelector(".sidebar-column"); // 👈 Находим всю правую колонку
+
+  if (!statusDiv || !sidebarColumn) return;
+
+  if (currentUser) {
+    // Пользователь залогинен
+    statusDiv.innerHTML = `<span>Привет, ${currentUser.username}!</span> <button id="btn-logout">Выйти</button>`;
+    document.getElementById("btn-logout").onclick = logout;
+
+    // 👇 Скрываем ВСЮ правую колонку целиком (вместе с отступами)
+    sidebarColumn.style.display = "none";
+  } else {
+    // Пользователь НЕ залогинен
+    statusDiv.innerHTML = ``;
+
+    // 👇 Показываем колонку и форму входа
+    sidebarColumn.style.display = "block";
+    document.getElementById("auth-section").style.display = "block";
+    document.getElementById("login-form-container").style.display = "block";
+    document.getElementById("register-form-container").style.display = "none";
+  }
+}
+function logout() {
+  localStorage.removeItem("token");
+  currentUser = null;
+  updateAuthUI();
+  document.getElementById("details").innerHTML = "";
+  fetchTweets();
+}
+function setupAuthForms() {
+  // Переключение между формами
+  document.getElementById("link-to-register").onclick = (e) => {
+    e.preventDefault();
+    document.getElementById("login-form-container").style.display = "none";
+    document.getElementById("register-form-container").style.display = "block";
+  };
+  document.getElementById("link-to-login").onclick = (e) => {
+    e.preventDefault();
+    document.getElementById("register-form-container").style.display = "none";
+    document.getElementById("login-form-container").style.display = "block";
+  };
+
+  // Логин
+  document.getElementById("btn-login").onclick = async () => {
+    const email = document.getElementById("login-email").value;
+    const password = document.getElementById("login-password").value;
+
+    // FastAPI OAuth2 ожидает form-urlencoded
+    const formData = new URLSearchParams();
+    formData.append("username", email);
+    formData.append("password", password);
+
+    try {
+      const res = await fetch(`${API_URL}/token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Неверный email или пароль");
+
+      const data = await res.json();
+      localStorage.setItem("token", data.access_token);
+      await checkAuth();
+      document.getElementById("auth-section").style.display = "none";
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // Регистрация
+  document.getElementById("btn-register").onclick = async () => {
+    const username = document.getElementById("reg-username").value;
+    const email = document.getElementById("reg-email").value;
+    const passwordUnhashed = document.getElementById("reg-password").value;
+
+    try {
+      const res = await fetch(`${API_URL}/user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, passwordUnhashed }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        let errorMessage = "Ошибка регистрации";
+
+        if (err.detail) {
+          if (typeof err.detail === "string") {
+            // Обычная ошибка (например, "username already exists")
+            errorMessage = err.detail;
+          } else if (Array.isArray(err.detail)) {
+            // Ошибка валидации Pydantic (422) - это массив объектов
+            errorMessage = err.detail
+              .map((e) => {
+                // e.loc — путь к полю (например, ["body", "email"]), берем последний элемент
+                const field = e.loc[e.loc.length - 1];
+                return `${field}: ${e.msg}`;
+              })
+              .join("\n"); // Склеиваем ошибки через перенос строки
+          }
+        }
+        throw new Error(errorMessage);
+      }
+      alert("Аккаунт создан! Теперь вы можете войти.");
+      document.getElementById("link-to-login").click();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+}
 
 async function fetchTweets() {
   try {
@@ -44,10 +184,15 @@ function renderNotes(notes) {
     const title = document.createElement("h3");
     title.textContent = note.title;
 
+    const author = document.createElement("span");
+    author.className = "author-name";
+    author.textContent = `@${note.username || "unknown"}`;
+
     const desc = document.createElement("p");
     desc.textContent = note.description;
 
     body.appendChild(title);
+    body.appendChild(author); // 👈 Вставляем автора после заголовка
     body.appendChild(desc);
     card.appendChild(body);
 
@@ -80,14 +225,20 @@ form.addEventListener("submit", async (event) => {
       // Создание
       response = await fetch("http://localhost:8000/tweet", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
         body: JSON.stringify({ title, description }),
       });
     } else {
       // Обновление
       response = await fetch(`http://localhost:8000/tweet/${editingId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
         body: JSON.stringify({ title, description }),
       });
     }
@@ -127,6 +278,11 @@ async function showDetails(note) {
     const title = document.createElement("h2");
     title.textContent = thisTweet.title;
 
+    const postAuthor = document.createElement("div");
+    postAuthor.className = "author-name";
+    postAuthor.style.marginBottom = "10px";
+    postAuthor.textContent = `Автор: @${thisTweet.username || "unknown"}`;
+
     const text = document.createElement("p");
     text.textContent = thisTweet.description;
 
@@ -134,17 +290,19 @@ async function showDetails(note) {
     const actions = document.createElement("div");
     actions.className = "actions";
 
-    const editBtn = document.createElement("button");
-    editBtn.textContent = "Редактировать";
-    editBtn.addEventListener("click", () => editNote(thisTweet.id));
+    if (currentUser && currentUser.id === thisTweet.owner_id) {
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "Редактировать";
+      editBtn.addEventListener("click", () => editNote(thisTweet.id));
 
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "Удалить";
-    deleteBtn.className = "danger";
-    deleteBtn.addEventListener("click", () => deleteNote(thisTweet.id));
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "Удалить";
+      deleteBtn.className = "danger";
+      deleteBtn.addEventListener("click", () => deleteNote(thisTweet.id));
 
-    actions.appendChild(editBtn);
-    actions.appendChild(deleteBtn);
+      actions.appendChild(editBtn);
+      actions.appendChild(deleteBtn);
+    }
 
     // --- Секция комментариев ---
     const commentsSection = document.createElement("div");
@@ -165,7 +323,12 @@ async function showDetails(note) {
         commentHeader.className = "comment-header";
 
         const commentText = document.createElement("p");
-        commentText.textContent = comment.description;
+        const authorSpan = document.createElement("strong");
+        authorSpan.className = "comment-author";
+        authorSpan.textContent = `@${comment.owner_username || "unknown"}: `;
+
+        commentText.appendChild(authorSpan);
+        commentText.appendChild(document.createTextNode(comment.description));
 
         const commentActions = document.createElement("div");
         commentActions.className = "comment-actions";
@@ -175,19 +338,21 @@ async function showDetails(note) {
         commentLikes.textContent = `❤️ ${comment.likes || 0}`;
 
         // 👇 Кнопка удаления комментария
-        const deleteCommentBtn = document.createElement("button");
-        deleteCommentBtn.textContent = "✖";
-        deleteCommentBtn.className = "delete-comment-btn";
-        deleteCommentBtn.title = "Удалить комментарий";
+        if (currentUser && currentUser.id === comment.owner_id) {
+          const deleteCommentBtn = document.createElement("button");
+          deleteCommentBtn.textContent = "✖";
+          deleteCommentBtn.className = "delete-comment-btn";
+          deleteCommentBtn.title = "Удалить комментарий";
 
-        // Обработчик клика
-        deleteCommentBtn.addEventListener("click", (e) => {
-          e.stopPropagation(); // Чтобы клик не триггерил другие события
-          deleteComment(comment.id, thisTweet.id);
-        });
+          deleteCommentBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            deleteComment(comment.id, thisTweet.id);
+          });
+
+          commentActions.appendChild(deleteCommentBtn);
+        }
 
         commentActions.appendChild(commentLikes);
-        commentActions.appendChild(deleteCommentBtn);
 
         commentHeader.appendChild(commentText);
         commentHeader.appendChild(commentActions);
@@ -202,6 +367,7 @@ async function showDetails(note) {
       commentsSection.appendChild(noComments);
     }
     details.appendChild(title);
+    details.appendChild(postAuthor);
     details.appendChild(text);
     details.appendChild(actions);
     details.appendChild(commentsSection); // Добавляем комментарии в конец
@@ -232,7 +398,10 @@ async function showDetails(note) {
           `http://localhost:8000/tweet/${note.id}/comments`,
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              ...getAuthHeaders(),
+            },
             body: JSON.stringify({ description: text }), // Отправляем только текст
           },
         );
@@ -262,6 +431,7 @@ async function deleteNote(id) {
   try {
     const response = await fetch(`http://localhost:8000/tweet/${id}`, {
       method: "DELETE",
+      headers: { ...getAuthHeaders() },
     });
 
     if (!response.ok) {
@@ -297,7 +467,7 @@ async function editNote(id) {
     // Прокручиваем к форме
     form.scrollIntoView({ behavior: "smooth" });
   } catch (error) {
-    showError(error.message());
+    showError(error.message);
   }
 }
 
@@ -312,6 +482,7 @@ async function deleteComment(commentId, tweetId) {
       `http://localhost:8000/comments/${commentId}`,
       {
         method: "DELETE",
+        headers: { ...getAuthHeaders() },
       },
     );
 
